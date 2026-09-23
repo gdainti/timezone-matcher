@@ -448,7 +448,7 @@
 
 <style>
   main {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 24px 16px 48px;
   }
@@ -614,7 +614,7 @@
   }
 
   .labels {
-    flex: 0 0 212px;
+    flex: 0 0 180px;
     padding-right: 12px;
   }
 
@@ -625,7 +625,7 @@
     padding-bottom: 4px;
   }
   .tracks {
-    min-width: 1200px;
+    min-width: 1180px;
   }
 
   .labels,
