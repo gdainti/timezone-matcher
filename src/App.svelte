@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, tick, untrack } from 'svelte'
   import {
     HOUR,
     allZones,
@@ -234,6 +234,22 @@
   }
 
   onMount(() => scrollToMoment(pinned ?? now))
+
+  const today = $derived(toDateInput(new Date(now)))
+  let lastToday = toDateInput(new Date())
+
+  $effect(() => {
+    const t = today
+    if (t === lastToday) return
+    const previous = lastToday
+    lastToday = t
+    untrack(() => {
+      if (date !== previous) return
+      date = t
+      pinned = null
+      tick().then(() => scrollToMoment(now))
+    })
+  })
 
   function setDate(v: string) {
     if (!v) return
