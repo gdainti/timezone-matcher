@@ -69,7 +69,6 @@
   let active = $state(-1)
   let tracksEl: HTMLDivElement
   let boardEl: HTMLDivElement
-  let labelsEl: HTMLDivElement
 
   $effect(() => {
     const id = setInterval(() => (now = Date.now()), 1000)
@@ -231,11 +230,7 @@
 
   function scrollToMoment(ms: number) {
     if (!inWindow(ms)) return
-    const board = boardEl.getBoundingClientRect()
-    const tracks = tracksEl.getBoundingClientRect()
-    const x = tracks.left - board.left + boardEl.scrollLeft + ((ms - start) / span) * tracks.width
-    const visible = boardEl.clientWidth - labelsEl.offsetWidth
-    boardEl.scrollLeft = x - labelsEl.offsetWidth - visible / 2
+    boardEl.scrollLeft = ((ms - start) / span) * tracksEl.offsetWidth - boardEl.clientWidth / 2
   }
 
   onMount(() => scrollToMoment(pinned ?? now))
@@ -303,9 +298,9 @@
     {/if}
   </div>
 
-  <div class="board" bind:this={boardEl}>
+  <div class="board">
     <div class="grid">
-      <div class="labels" bind:this={labelsEl}>
+      <div class="labels">
         {#each rows as row (row.tz)}
           {@const z = zoned(row.tz, selected)}
           <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -341,6 +336,7 @@
         {/each}
       </div>
 
+      <div class="scroller" bind:this={boardEl}>
       <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
       <div
         class="tracks"
@@ -376,6 +372,7 @@
         {#if cursor !== null && inWindow(cursor)}
           <div class="line cursor" style:left="{pct(cursor)}%"></div>
         {/if}
+      </div>
       </div>
     </div>
   </div>
@@ -592,27 +589,24 @@
     font-size: 13px;
   }
 
-  .board {
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
-
   .grid {
     --row-h: 72px;
     display: flex;
-    min-width: max-content;
   }
 
   .labels {
-    position: sticky;
-    left: 0;
-    z-index: 5;
-    background: var(--bg);
     flex: 0 0 212px;
     padding-right: 12px;
   }
+
+  .scroller {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
   .tracks {
-    flex: 1 0 1200px;
+    min-width: 1200px;
   }
 
   .labels,
