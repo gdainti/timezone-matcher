@@ -3,11 +3,75 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#4f6bed" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>timezone-matcher</title>
+    <meta name="color-scheme" content="light dark" />
+
+    <title>Timezone Matcher – Compare Time Zones & Find Meeting Times</title>
+    <meta
+      name="description"
+      content="Free time zone comparison tool. See your local time next to New York, Tokyo, UTC or any city on one shared timeline, spot overlapping working hours and find the best meeting time across time zones."
+    />
+    <meta
+      name="keywords"
+      content="timezone matcher, time zone converter, time zone comparison, world clock, meeting planner, time zone meeting planner, overlapping working hours, remote team scheduling, international meeting time, UTC converter, time difference calculator, compare time zones"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Timezone Matcher" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Timezone Matcher – Compare Time Zones & Find Meeting Times" />
+    <meta
+      property="og:description"
+      content="Line up any time zones on one timeline, see working hours overlap and pick a meeting time that works for everyone."
+    />
+    <meta property="og:site_name" content="Timezone Matcher" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Timezone Matcher – Compare Time Zones & Find Meeting Times" />
+    <meta
+      name="twitter:description"
+      content="Line up any time zones on one timeline, see working hours overlap and pick a meeting time that works for everyone."
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Timezone Matcher",
+        "description": "A time zone comparison tool that shows several time zones as rows on one shared 24-hour timeline, with a live now-line and a pinnable moment, so teams can see overlapping working hours and choose meeting times.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any (web browser)",
+        "browserRequirements": "Requires JavaScript",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": [
+          "Your local time zone detected automatically",
+          "Add any city or IANA time zone",
+          "Shared timeline with hours in each zone's local time",
+          "Live now-line and pinnable moment with the difference from now",
+          "Working hours, off-hours and night shading per zone",
+          "Choices saved in your browser"
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>
+    <noscript>
+      <h1>Timezone Matcher</h1>
+      <p>
+        Timezone Matcher lines up several time zones on one shared timeline, so you can see what
+        time it is in each place at the same moment. Your own time zone is detected automatically,
+        and you can add New York, Tokyo, UTC or any other city.
+      </p>
+      <p>
+        It is made for people who work or keep in touch across time zones: remote teams, freelancers
+        and clients, families and friends abroad. Instead of converting times one by one in your
+        head, you can see where working hours overlap and pick a meeting time that suits everyone,
+        including across daylight saving changes.
+      </p>
+      <p>This app needs JavaScript to run. Please enable it in your browser.</p>
+    </noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
