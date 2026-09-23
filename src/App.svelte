@@ -49,7 +49,10 @@
   function loadPinned(): number | null {
     try {
       const v = Number(JSON.parse(localStorage.getItem(PIN_KEY) ?? 'null'))
-      return Number.isFinite(v) && v > 0 ? v : null
+      const t = new Date()
+      const dayStart = new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime()
+      const dayEnd = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1).getTime()
+      return Number.isFinite(v) && v >= dayStart && v <= dayEnd ? v : null
     } catch {
       return null
     }
@@ -59,7 +62,7 @@
 
   let zones = $state(loadZones())
   let now = $state(Date.now())
-  let date = $state(toDateInput(new Date(savedPin ?? Date.now())))
+  let date = $state(toDateInput(new Date()))
   let hover = $state<number | null>(null)
   let hoverRow = $state<string | null>(null)
   let pinned = $state<number | null>(savedPin)
