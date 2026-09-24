@@ -39,7 +39,7 @@
         return [systemZone, ...saved.filter((z) => z !== systemZone)]
       }
     } catch {}
-    return [systemZone, 'America/Los_Angeles', 'America/New_York', 'UTC', 'Europe/London', 'Europe/Tallinn', 'Asia/Kolkata', 'Asia/Tokyo'].filter((z, i, a) => a.indexOf(z) === i)
+    return [systemZone, 'America/Los_Angeles', 'America/New_York', 'Europe/London', 'Europe/Tallinn', 'Asia/Kolkata', 'Asia/Tokyo'].filter((z, i, a) => a.indexOf(z) === i)
   }
 
   function toDateInput(d: Date): string {
@@ -389,7 +389,9 @@
           <div class="line now" style:left="{pct(now)}%"><span>now</span></div>
         {/if}
         {#if cursor !== null && inWindow(cursor)}
-          <div class="line cursor" style:left="{pct(cursor)}%"></div>
+          <div class="line cursor" style:left="{pct(cursor)}%">
+            {#if pinned !== null}<span>pinned</span>{/if}
+          </div>
         {/if}
       </div>
       </div>
@@ -637,6 +639,7 @@
 
   .tracks {
     position: relative;
+    padding-bottom: 18px;
     cursor: crosshair;
     user-select: none;
   }
@@ -743,7 +746,7 @@
   .line {
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 18px;
     width: 0;
     pointer-events: none;
   }
@@ -762,13 +765,17 @@
     background: var(--accent);
     left: -1px;
   }
-  .line.now span {
+  .line span {
     position: absolute;
-    bottom: 2px;
+    top: 100%;
     left: 4px;
+    margin-top: 2px;
     font-size: 11px;
     font-weight: 600;
     color: var(--now);
+  }
+  .line.cursor span {
+    color: var(--accent);
   }
 
   .legend {
