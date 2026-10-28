@@ -617,6 +617,7 @@
 
   .labels {
     flex: 0 0 180px;
+    padding-top: 18px;
     padding-right: 12px;
   }
 
@@ -639,6 +640,7 @@
 
   .tracks {
     position: relative;
+    padding-top: 18px;
     padding-bottom: 18px;
     cursor: crosshair;
     user-select: none;
@@ -745,7 +747,7 @@
 
   .line {
     position: absolute;
-    top: 0;
+    top: 18px;
     bottom: 18px;
     width: 0;
     pointer-events: none;
@@ -767,14 +769,19 @@
   }
   .line span {
     position: absolute;
-    top: 100%;
     left: 4px;
-    margin-top: 2px;
     font-size: 11px;
     font-weight: 600;
     color: var(--now);
   }
+  /* now label above its line, pinned label below, so they never overlap */
+  .line.now span {
+    bottom: 100%;
+    margin-bottom: 2px;
+  }
   .line.cursor span {
+    top: 100%;
+    margin-top: 2px;
     color: var(--accent);
   }
 
