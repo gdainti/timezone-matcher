@@ -1,5 +1,5 @@
 
-[Demo link](https://gdainti.com/timezone-matcher/)
+[Demo: tz.gdainti.com](https://tz.gdainti.com)
 
 ## Deployment
 
@@ -46,7 +46,7 @@ allow only `main`, then add:
 | ---------------- | -------- | ----------------------------------------------- |
 | `WEBHOOK_URL`    | secret   | URL of the timezone-matcher hook on the server  |
 | `WEBHOOK_SECRET` | secret   | token the hook checks                           |
-| `APP_URL`        | variable | optional, the site's public URL                 |
+| `APP_URL`        | variable | optional, `https://tz.gdainti.com`              |
 
 The first push creates the `timezone-matcher` package on ghcr.io as private. Either make it public
 (package → Package settings → Change visibility) or `docker login ghcr.io` on the server with a
@@ -63,12 +63,15 @@ mkdir -p /opt/docker/timezone-matcher && cd /opt/docker/timezone-matcher
 Point the webhook receiver's timezone-matcher hook at `/opt/docker/timezone-matcher/deploy.sh`. CI
 does not sync `compose.yaml` or `deploy.sh`, so copy them to the server again when they change.
 
-**DNS:** an `A` (and `AAAA`) record for the subdomain pointing at the server.
+**DNS:** an `A` record for `tz.gdainti.com` pointing at the server.
 
-**Nginx Proxy Manager:** add a proxy host for the subdomain → scheme `http`, host
+**Nginx Proxy Manager:** add a proxy host for `tz.gdainti.com` → scheme `http`, host
 `timezone-matcher`, port `8080`, with a Let's Encrypt certificate, "Force SSL" and HTTP/2. Leave its
 HSTS option off (the container already sends the header) and add nothing in the Advanced tab, or
 the security headers can end up doubled.
+
+The old address `gdainti.com/timezone-matcher/` (and anything under it) answers with a 301 to
+`https://tz.gdainti.com/`, set in gdainti.com's `nginx.conf` on the server.
 
 # Svelte + TS + Vite
 
