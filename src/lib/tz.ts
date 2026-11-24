@@ -56,6 +56,12 @@ export function resolveZone(input: string): string | null {
   const q = input.trim().toLowerCase().replace(/[\s_]+/g, ' ')
   if (!q) return null
   if (/^(utc|gmt)( ?[+-] ?0{1,2}(:00)?)?$/.test(q)) return 'UTC'
+  // "UTC+5" / "GMT-3" mean what they say, so map to the Etc zone with the opposite sign
+  const off = /^(?:utc|gmt) ?([+-]) ?(\d{1,2})(?::00)?$/.exec(q)
+  if (off) {
+    const etc = `Etc/GMT${off[1] === '+' ? '-' : '+'}${Number(off[2])}`
+    return isValidZone(etc) ? etc : null
+  }
   const norm = (z: string) => z.toLowerCase().replace(/_/g, ' ')
   const exact = allZones.find((z) => norm(z) === q || norm(z).split('/').pop() === q)
   if (exact) return exact
@@ -64,7 +70,19 @@ export function resolveZone(input: string): string | null {
   return isValidZone(input.trim()) ? input.trim() : null
 }
 
+/**
+ * Etc/GMT+5 is UTC-5: POSIX-style names flip the sign. Returns the offset as people read it
+ * ("UTC-5", "UTC+0"), or null for a zone that is not a fixed Etc/GMT offset.
+ */
+export function fixedOffsetLabel(tz: string): string | null {
+  const m = /^(?:Etc\/)?GMT([+-])(\d{1,2})$/.exec(tz)
+  if (!m) return null
+  return formatOffset((m[1] === '+' ? -1 : 1) * Number(m[2]) * 60)
+}
+
 export function cityName(tz: string): string {
+  const fixed = fixedOffsetLabel(tz)
+  if (fixed) return fixed
   return (tz.split('/').pop() ?? tz).replace(/_/g, ' ')
 }
 

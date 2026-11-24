@@ -8,6 +8,7 @@
     cityName,
     formatDiff,
     formatShortDiff,
+    fixedOffsetLabel,
     formatOffset,
     hourBlocks,
     isValidZone,
@@ -220,7 +221,11 @@
   }
 
   const norm = (z: string) => z.toLowerCase().replace(/_/g, ' ')
-  const zoneLabel = (z: string) => (z === UTC ? 'UTC+0' : z)
+  const zoneLabel = (z: string) => {
+    if (z === UTC) return 'UTC+0'
+    const fixed = fixedOffsetLabel(z)
+    return fixed ? `${fixed} (${z})` : z
+  }
 
   const suggestions = $derived.by(() => {
     const q = newZone.trim().toLowerCase().replace(/[\s_]+/g, ' ')
