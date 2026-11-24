@@ -1,16 +1,25 @@
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+
 :root {
   --bg: #f6f7f9;
   --panel: #ffffff;
   --text: #1c2230;
   --muted: #6b7385;
   --border: #dfe3ea;
+  --rule: #b9c0ce;
   --accent: #4f6bed;
+  --on-accent: #ffffff;
   --night: #dfe3ee;
+  --hatch: rgba(79, 107, 237, 0.09);
   --edge: #f0f2f7;
   --work: #cfe9d8;
+  --work-bar: #3c9a64;
   --now: #e5484d;
 
-  font: 15px/1.4 system-ui, 'Segoe UI', Roboto, sans-serif;
+  font: 15px/1.4 'IBM Plex Sans', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
   color-scheme: light dark;
   color: var(--text);
   background: var(--bg);
@@ -23,10 +32,14 @@
     --text: #e6e9f0;
     --muted: #8b93a7;
     --border: #2a3040;
+    --rule: #3d4560;
     --accent: #7d92ff;
+    --on-accent: #12151c;
     --night: #0f1219;
+    --hatch: rgba(125, 146, 255, 0.07);
     --edge: #212635;
     --work: #24503a;
+    --work-bar: #5fd39a;
     --now: #ff6369;
   }
 }

@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, tick, untrack } from 'svelte'
+  import Calendar from './lib/Calendar.svelte'
+  import { weekInfo } from './lib/week'
   import {
     HOUR,
     allZones,
@@ -19,7 +21,6 @@
   const POPULAR = [
     'America/Los_Angeles',
     'America/New_York',
-    'UTC',
     'Europe/London',
     'Europe/Tallinn',
     'Asia/Kolkata',
@@ -39,7 +40,7 @@
         return [systemZone, ...saved.filter((z) => z !== systemZone)]
       }
     } catch {}
-    return [systemZone, 'America/Los_Angeles', 'America/New_York', 'Europe/London', 'Europe/Tallinn', 'Asia/Kolkata', 'Asia/Tokyo'].filter((z, i, a) => a.indexOf(z) === i)
+    return [systemZone, 'America/New_York', 'Asia/Tokyo'].filter((z, i, a) => a.indexOf(z) === i)
   }
 
   function toDateInput(d: Date): string {
@@ -229,7 +230,9 @@
     else input.value = date
   }
 
-  let picker: HTMLInputElement
+  let calOpen = $state(false)
+  let dateField = $state<HTMLDivElement>()
+  const week = weekInfo(systemZone)
 
   function scrollToMoment(ms: number) {
     if (!inWindow(ms)) return
@@ -272,7 +275,7 @@
       </p>
     </div>
     <div class="controls">
-      <div class="date-field">
+      <div class="date-field" bind:this={dateField}>
         <input
           class="date-text"
           type="text"
@@ -284,21 +287,32 @@
           onkeydown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
           aria-label="Date (YYYY-MM-DD)"
         />
-        <button type="button" class="cal" onclick={() => picker.showPicker()} aria-label="Open calendar">
+        <button
+          type="button"
+          class="cal"
+          class:on={calOpen}
+          onclick={() => (calOpen = !calOpen)}
+          aria-label="Open calendar"
+          aria-expanded={calOpen}
+        >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="2" y="3" width="12" height="11" />
             <path d="M2 7h12M5 1.5v3M11 1.5v3" />
           </svg>
         </button>
-        <input
-          bind:this={picker}
-          class="date-native"
-          type="date"
-          value={date}
-          onchange={(e) => e.currentTarget.value && setDate(e.currentTarget.value)}
-          tabindex="-1"
-          aria-hidden="true"
-        />
+        {#if calOpen}
+          <Calendar
+            value={date}
+            {today}
+            {week}
+            anchor={dateField}
+            onpick={(v) => {
+              setDate(v)
+              calOpen = false
+            }}
+            onclose={() => (calOpen = false)}
+          />
+        {/if}
       </div>
       <button onclick={() => setDate(toDateInput(new Date()))}>Today</button>
     </div>
@@ -326,7 +340,6 @@
           <div
             class="label"
             class:own={row.tz === systemZone}
-            class:muted={row.tz === UTC}
             class:hot={hoverRow === row.tz}
             onpointerenter={() => (hoverRow = row.tz)}
             onpointerleave={() => (hoverRow = null)}
@@ -366,7 +379,6 @@
           <div
             class="track"
             class:own={row.tz === systemZone}
-            class:muted={row.tz === UTC}
             class:hot={hoverRow === row.tz}
             onpointerenter={() => (hoverRow = row.tz)}
             onpointerleave={() => (hoverRow = null)}
@@ -452,7 +464,7 @@
   main {
     max-width: 1600px;
     margin: 0 auto;
-    padding: 24px 16px 48px;
+    padding: 32px 24px 48px;
   }
 
   header {
@@ -461,12 +473,17 @@
     align-items: flex-end;
     gap: 16px;
     flex-wrap: wrap;
-    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--accent);
   }
 
   h1 {
-    margin: 0 0 4px;
-    font-size: 24px;
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
   }
 
   p {
@@ -484,47 +501,58 @@
   .add {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
-  input,
-  button {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 0;
-    padding: 6px 12px;
+  input {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    padding: 6px 2px;
   }
+  input:focus-visible {
+    outline: none;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 5px;
+  }
+  input::placeholder {
+    color: var(--muted);
+  }
+
   button {
     cursor: pointer;
+    background: var(--panel);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
   button:hover {
-    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
   }
+
   .date-field {
     position: relative;
     display: flex;
-    gap: 4px;
+    gap: 6px;
   }
   .date-text {
-    width: 118px;
-    font-variant-numeric: tabular-nums;
+    width: 112px;
+    font-size: 14px;
+  }
+  .cal.on {
+    background: var(--accent);
+    color: var(--on-accent);
   }
   .cal {
     display: flex;
     align-items: center;
     padding: 6px 8px;
-  }
-  .date-native {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    border: 0;
-    opacity: 0;
-    pointer-events: none;
   }
 
   .combo {
@@ -535,10 +563,6 @@
   }
   .combo input {
     width: 100%;
-  }
-  .combo input:focus-visible {
-    outline: none;
-    border-color: var(--accent);
   }
   .options {
     position: absolute;
@@ -554,60 +578,72 @@
     background: var(--panel);
     border: 1px solid var(--accent);
     border-top: 0;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
   }
   .options li {
     padding: 6px 12px;
     cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+  .options li:last-child {
+    border-bottom: 0;
   }
   .options li.active {
     background: var(--accent);
-    color: var(--panel);
+    color: var(--on-accent);
   }
   .error {
     color: var(--now);
     font-size: 13px;
   }
 
+  /* big readout, no box */
   .now-bar {
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
-    gap: 4px 16px;
-    margin-bottom: 12px;
-    padding: 10px 16px;
-    background: var(--panel);
-    border: 1px solid var(--border);
+    gap: 4px 20px;
+    padding: 18px 0 16px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
   }
   .now-time {
-    font-size: 28px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.1;
+    font-size: 48px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1;
   }
   .now-date {
-    font-size: 16px;
+    font-size: 17px;
+    font-weight: 500;
+  }
+  .now-zone {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.04em;
   }
   .now-pin {
     margin-left: auto;
     display: flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 10px;
     text-align: right;
+  }
+  .now-pin .muted {
     color: var(--accent);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 11px;
   }
   .pin-time {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 600;
-    font-variant-numeric: tabular-nums;
+    color: var(--accent);
   }
   .pin-diff {
     font-size: 13px;
-    min-width: 5.5em;
-  }
-  .now-zone {
     color: var(--muted);
-    font-size: 13px;
+    min-width: 5.5em;
   }
 
   .grid {
@@ -616,9 +652,8 @@
   }
 
   .labels {
-    flex: 0 0 180px;
+    flex: 0 0 190px;
     padding-top: 18px;
-    padding-right: 12px;
   }
 
   .scroller {
@@ -635,7 +670,6 @@
   .tracks {
     display: flex;
     flex-direction: column;
-    gap: 4px;
   }
 
   .tracks {
@@ -646,15 +680,43 @@
     user-select: none;
   }
 
-  .label {
+  /* timetable rows: hairlines, no cards */
+  .label,
+  .track {
     height: var(--row-h);
-    padding: 8px 6px 8px 12px;
-    background: var(--panel);
-    border: 2px solid var(--border);
-    border-radius: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .label:first-child,
+  .track:first-child {
+    border-top: 1px solid var(--rule);
+  }
+  .label:last-child,
+  .track:last-child {
+    border-bottom-color: var(--rule);
+  }
+
+  .label {
+    position: relative;
+    padding: 9px 12px 8px 14px;
+    border-right: 1px solid var(--rule);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+  }
+  .label.own::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    background: var(--accent);
+  }
+  .label.own {
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+  .label.hot {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
   }
   .short {
     display: none;
@@ -664,89 +726,115 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
   .label-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
+  .label.own .clock {
+    color: var(--accent);
+  }
   .clock {
-    font-variant-numeric: tabular-nums;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 500;
     line-height: 1;
   }
-  .label.own,
-  .label.hot {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, var(--panel));
-    outline: 1px solid var(--accent);
-    outline-offset: -1px;
+  .clock .date {
+    margin-left: 4px;
   }
-  .track.own,
-  .track.hot {
-    border-color: var(--accent);
-  }
-  .track.own::after,
-  .track.hot::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    box-shadow: inset 0 0 0 1px var(--accent);
-    pointer-events: none;
+  .label > .muted {
+    font-size: 11px;
   }
   .remove {
-    padding: 0 6px;
+    padding: 0 4px;
     line-height: 1.2;
-    border-radius: 0;
+    border: 0;
     color: var(--muted);
+    font-size: 15px;
+    letter-spacing: 0;
+  }
+  .remove:hover {
+    background: transparent;
+    color: var(--now);
   }
 
   .track {
     position: relative;
-    height: var(--row-h);
-    border: 1px solid var(--border);
-    border-radius: 0;
     overflow: hidden;
     background: var(--night);
+  }
+  .track.own::before,
+  .track.hot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+    pointer-events: none;
+  }
+  .track.hot::before {
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+    box-shadow: inset 0 0 0 1px var(--accent);
   }
 
   .block {
     position: absolute;
     top: 0;
     bottom: 0;
-    padding: 6px 0 0 6px;
-    font-size: 13px;
-    font-variant-numeric: tabular-nums;
+    padding: 7px 0 0 6px;
+    font-size: 12px;
     border-left: 1px solid var(--border);
     white-space: nowrap;
     overflow: hidden;
   }
   .block.night {
-    background: var(--night);
     color: var(--muted);
+    background: repeating-linear-gradient(
+      135deg,
+      transparent 0 5px,
+      var(--hatch) 5px 6px
+    ),
+    var(--night);
   }
   .block.edge {
     background: var(--edge);
   }
+  /* working hours: an ink bar along the bottom, like a timetable service line */
   .block.work {
     background: var(--work);
   }
+  .block.work::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    background: var(--work-bar);
+  }
   .block .day {
     display: block;
-    margin-top: 1px;
+    margin-top: 2px;
     font-size: 10px;
     font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--muted);
   }
   .block.midnight {
-    font-weight: 700;
-    padding-left: 4px;
+    font-weight: 600;
+    padding-left: 5px;
+    border-left: 2px solid var(--accent);
   }
 
   .line {
     position: absolute;
+    z-index: 2;
     top: 18px;
     bottom: 18px;
     width: 0;
@@ -765,68 +853,79 @@
   }
   .line.cursor::before {
     background: var(--accent);
-    left: -1px;
   }
   .line span {
     position: absolute;
     left: 4px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: var(--now);
   }
   /* now label above its line, pinned label below, so they never overlap */
   .line.now span {
     bottom: 100%;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
   }
   .line.cursor span {
     top: 100%;
-    margin-top: 2px;
+    margin-top: 3px;
     color: var(--accent);
   }
 
   .legend {
     display: flex;
-    gap: 16px;
-    margin: 12px 0 20px;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin: 6px 0 28px;
+    letter-spacing: 0.04em;
   }
   .swatch {
     display: inline-block;
-    width: 12px;
+    position: relative;
+    width: 18px;
     height: 12px;
-    margin-right: 6px;
+    margin-right: 7px;
     vertical-align: -1px;
     border: 1px solid var(--border);
-    border-radius: 0;
   }
   .swatch.work {
     background: var(--work);
+    border-bottom: 3px solid var(--work-bar);
   }
   .swatch.edge {
     background: var(--edge);
   }
   .swatch.night {
-    background: var(--night);
+    background: repeating-linear-gradient(135deg, transparent 0 3px, var(--hatch) 3px 4px), var(--night);
+  }
+  .swatch.pin,
+  .swatch.now {
+    width: 2px;
+    border: 0;
+    margin-right: 8px;
   }
   .swatch.pin {
     background: var(--accent);
-    border-color: var(--accent);
   }
   .swatch.now {
     background: var(--now);
-    border-color: var(--now);
   }
 
   @media (max-width: 640px) {
     main {
-      padding: 12px 8px 32px;
+      padding: 16px 10px 32px;
     }
     .labels {
-      flex-basis: 92px;
-      padding-right: 6px;
+      flex-basis: 96px;
     }
     .label {
-      padding: 6px 6px;
+      padding: 7px 6px 6px 9px;
+    }
+    .city {
+      font-size: 11px;
+      letter-spacing: 0.06em;
     }
     .clock {
       font-size: 16px;
@@ -840,11 +939,9 @@
     }
     .remove {
       padding: 0 2px;
-      border: 0;
-      background: transparent;
     }
     .now-time {
-      font-size: 22px;
+      font-size: 34px;
     }
   }
 </style>
