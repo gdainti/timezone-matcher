@@ -10,6 +10,7 @@
     formatShortDiff,
     formatOffset,
     hourBlocks,
+    isValidZone,
     pad2,
     resolveZone,
     zoned,
@@ -61,12 +62,34 @@
 
   const savedPin = loadPinned()
 
-  let zones = $state(loadZones())
+  // A shared link: ?z=<zone>,<zone>…&t=<UTC time, e.g. 2026-11-25T14:00Z>. It shows the sender's
+  // zones and pinned moment without touching the visitor's saved setup, until they change something.
+  function readLink(): { zones: string[]; pinned: number | null } | null {
+    const params = new URLSearchParams(location.search)
+    const zs = (params.get('z') ?? '')
+      .split(',')
+      .map((z) => z.trim())
+      .filter((z) => z && isValidZone(z))
+    const t = params.has('t') ? Date.parse(params.get('t')!) : NaN
+    if (!zs.length && !Number.isFinite(t)) return null
+    return { zones: zs, pinned: Number.isFinite(t) ? t : null }
+  }
+
+  const link = readLink()
+
+  function linkZones(shared: string[]): string[] {
+    return [systemZone, ...shared].filter((z, i, a) => a.indexOf(z) === i)
+  }
+
+  let zones = $state(link?.zones.length ? linkZones(link.zones) : loadZones())
   let now = $state(Date.now())
-  let date = $state(toDateInput(new Date()))
+  let date = $state(toDateInput(link?.pinned != null ? new Date(link.pinned) : new Date()))
+  /** false while showing a shared link the visitor has not changed: their saved setup is kept */
+  let persist = $state(!link)
   let hover = $state<number | null>(null)
   let hoverRow = $state<string | null>(null)
-  let pinned = $state<number | null>(savedPin)
+  let pinned = $state<number | null>(link ? link.pinned : savedPin)
+  let copied = $state(false)
   let newZone = $state('')
   let error = $state('')
   let open = $state(false)
@@ -80,15 +103,19 @@
   })
 
   $effect(() => {
+    const saved = JSON.stringify(zones.slice(1))
+    if (!persist) return
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(zones.slice(1)))
+      localStorage.setItem(STORAGE_KEY, saved)
     } catch {}
   })
 
   $effect(() => {
+    const p = pinned
+    if (!persist) return
     try {
-      if (pinned === null) localStorage.removeItem(PIN_KEY)
-      else localStorage.setItem(PIN_KEY, JSON.stringify(pinned))
+      if (p === null) localStorage.removeItem(PIN_KEY)
+      else localStorage.setItem(PIN_KEY, JSON.stringify(p))
     } catch {}
   })
 
@@ -162,7 +189,33 @@
     if (e.pointerType === 'mouse') hover = msAt(e)
   }
 
+  /** The visitor changed something: from now on this is their own setup */
+  function adopt() {
+    if (persist) return
+    persist = true
+    history.replaceState(null, '', location.pathname + location.hash)
+  }
+
+  function shareUrl(): string {
+    // '+' (Etc/GMT+5) would read back as a space
+    const z = zones.map((tz) => tz.replace(/\+/g, '%2B')).join(',')
+    const t = pinned === null ? '' : `&t=${new Date(pinned).toISOString().slice(0, 16)}Z`
+    return `${location.origin}${location.pathname}?z=${z}${t}`
+  }
+
+  async function share() {
+    const url = shareUrl()
+    try {
+      await navigator.clipboard.writeText(url)
+      copied = true
+      setTimeout(() => (copied = false), 2000)
+    } catch {
+      prompt('Copy this link', url)
+    }
+  }
+
   function onClick(e: MouseEvent) {
+    adopt()
     pinned = pinned === null ? msAt(e) : null
   }
 
@@ -190,6 +243,7 @@
       error = `${cityName(tz)} is already added`
       return
     }
+    adopt()
     zones.push(tz)
     newZone = ''
     error = ''
@@ -213,6 +267,7 @@
   }
 
   function removeZone(tz: string) {
+    adopt()
     zones = zones.filter((z) => z !== tz)
   }
 
@@ -259,6 +314,7 @@
 
   function setDate(v: string) {
     if (!v) return
+    adopt()
     date = v
     pinned = null
   }
@@ -315,8 +371,22 @@
         {/if}
       </div>
       <button onclick={() => setDate(toDateInput(new Date()))}>Today</button>
+      <button
+        class="share"
+        onclick={share}
+        title={pinned === null ? 'Copy a link to these zones' : 'Copy a link to these zones and the pinned time'}
+        >{copied ? 'Link copied' : 'Share'}</button
+      >
     </div>
   </header>
+
+  {#if !persist}
+    <div class="shared-note">
+      <span>You're viewing a shared link. Your own saved zones are unchanged.</span>
+      <button onclick={adopt}>Keep these zones</button>
+      <a href={location.pathname}>Show mine</a>
+    </div>
+  {/if}
 
   <div class="now-bar">
     <span class="now-time">{nowClock}</span>
@@ -594,6 +664,30 @@
   }
   .error {
     color: var(--now);
+    font-size: 13px;
+  }
+
+  .share {
+    min-width: 7.5em;
+  }
+
+  .shared-note {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 12px;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+  .shared-note button {
+    padding: 3px 10px;
+    font-size: 11px;
+  }
+  .shared-note a {
+    color: var(--accent);
     font-size: 13px;
   }
 

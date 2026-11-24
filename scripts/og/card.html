@@ -1,0 +1,112 @@
+<!doctype html>
+<!-- Social preview card (1200x630). Rendered by scripts/og/render.sh into public/og-image.png. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: Plex;
+        font-weight: 400;
+        src: url(/og-fonts/ibm-plex-sans-latin-400-normal.woff2);
+      }
+      @font-face {
+        font-family: Plex;
+        font-weight: 500;
+        src: url(/og-fonts/ibm-plex-sans-latin-500-normal.woff2);
+      }
+      @font-face {
+        font-family: Plex;
+        font-weight: 600;
+        src: url(/og-fonts/ibm-plex-sans-latin-600-normal.woff2);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #f6f7f9;
+        font-family: Plex, sans-serif;
+        color: #1c2230;
+      }
+      .top {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        top: 52px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 22px;
+        border-bottom: 3px solid #4f6bed;
+      }
+      .kicker {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #4f6bed;
+        margin-bottom: 12px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 58px;
+        line-height: 1.05;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .url {
+        font-size: 26px;
+        font-weight: 500;
+        color: #4f6bed;
+        padding-bottom: 6px;
+      }
+      .shot {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        top: 214px;
+        bottom: 0;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #dfe3ea;
+        border-bottom: 0;
+        box-shadow: 0 -6px 30px rgba(28, 34, 48, 0.08);
+      }
+      /* the live app, scaled down; the offset skips its own header */
+      iframe {
+        border: 0;
+        width: 1500px;
+        height: 900px;
+        transform: scale(0.715);
+        transform-origin: 0 0;
+        margin-top: -66px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div>
+        <div class="kicker">Timezone Matcher</div>
+        <h1>See where working hours overlap</h1>
+      </div>
+      <div class="url">tz.gdainti.com</div>
+    </div>
+    <div class="shot"></div>
+    <script>
+      // Same origin as the app, so the card can set its state: the default zones and a pinned
+      // moment at 16:00 local (New York's 9:00 meets the end of the European working day)
+      localStorage.setItem('timezone-matcher:zones', JSON.stringify(['America/New_York', 'Asia/Tokyo']))
+      const pin = new Date()
+      pin.setHours(16, 0, 0, 0)
+      localStorage.setItem('timezone-matcher:pinned', JSON.stringify(pin.getTime()))
+      const frame = document.createElement('iframe')
+      frame.src = '/'
+      frame.scrolling = 'no'
+      document.querySelector('.shot').append(frame)
+    </script>
+  </body>
+</html>
