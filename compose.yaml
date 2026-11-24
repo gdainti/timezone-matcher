@@ -1,0 +1,32 @@
+# Production: copy to /opt/docker/timezone-matcher on the server, next to deploy.sh
+services:
+  timezone-matcher:
+    image: ghcr.io/gdainti/timezone-matcher:${TAG:-latest}
+    container_name: timezone-matcher
+    restart: unless-stopped
+    # No published port: Nginx Proxy Manager reaches it as timezone-matcher:8080 on internet-grid
+    networks:
+      - internet-grid
+    # nginx writes only its pid and temp files to /tmp; logs go to stdout
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.5'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+networks:
+  internet-grid:
+    external: true
